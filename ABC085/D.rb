@@ -4,48 +4,33 @@ n.times do
   attack << gets.chomp.split(" ").map(&:to_i)
 end
 
-# 強いのから振る
-# 強いのから投げる
-# ある刀は振る<=投げる
-# 他の刀の投げるより強い振るの場合，投げる必要ない
-#
-# 強い順にソート
-# 振るより投げるが強い場合，そこまで投げた場合の合計ダメージになるまで殴る
+# 普通に攻撃するなら振る攻撃力が高いものを使うのが吉．
+# 投げつけるなら，投げつける攻撃力が高いものから順に投げつけるのが吉．
 
+# 何度か殴って，順番に投げる
+# 攻撃回数を最小にしたい．
+# 何個まで投げるか：k
+# 目標値から投げる分引いた分だけ殴る
+#   0 ≦ k ≦ N を全部試す
 
+attack.sort_by!{|atk| atk[1]}.reverse!
+swing_max = attack.max_by{|atk| atk[0]}[0]
+ans = h / swing_max + 1
 
-attack.delete_if {|atk| attack.any?{|at| at[0] > atk[1]} }
+(n+1).times do |k|
 
-#p attack
-
-throw_total = 0
-swing_max = attack[0][0]
-attack.each do |atk|
-  throw_total += atk[1]
-  if atk[0] > swing_max
-    swing_max = atk[0]
+  # k個投げる
+  if k > 0
+    h -= attack[k-1][1]
   end
-end
 
-remain_hp = (h - throw_total)
-
-ans = 0
-
-#puts "h-throw_total :#{h} - #{throw_total} = #{h-throw_total}"
-#puts "ans : #{remain_hp}"
-
-if remain_hp > 0
-  ans += remain_hp / swing_max
-  h -= ans * swing_max
-  if remain_hp % swing_max > 0
-    ans += 1
-    h -= swing_max
+  # 殴る回数
+  cnt = 0
+  if h > 0
+    cnt = (h+swing_max-1)/swing_max
   end
-else
-  ans = 0
-end
 
-h -= throw_total
-ans += attack.size
+  ans = [ans,cnt+k].min
+end
 
 puts ans
