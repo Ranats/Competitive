@@ -1,3 +1,5 @@
+# 累積和
+
 n = gets.to_i
 lines = gets.chomp.split("")
 
