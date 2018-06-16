@@ -7,6 +7,4 @@ def division2(x,i)
 end
 
 n = gets.to_i
-seq = gets.chomp.split(" ").map(&:to_i)
-
-p seq.inject(0){|sum,a| sum + division2(a,0)}
+p gets.chomp.split(" ").map(&:to_i).inject(0){|sum,a| sum + division2(a,0)}
