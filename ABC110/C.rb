@@ -1,19 +1,12 @@
-s = gets.chomp.split("").sort
-t = gets.chomp.split("").sort
+s = gets.chomp
+t = gets.chomp
 
-hash_s = {}
-hash_t = {}
-
-s.uniq.each do |c|
-  hash_s[c] = s.count(c)
-end
-t.uniq.each do |c|
-  unless hash_s[c].nil?
-    if hash_s[c] != t.count(c)
-      puts "No"
-      exit
-    end
-  end
+s.size.times do |i|
+  c1 = s[i]
+  c2 = t[i]
+  s.gsub!(c2, "*")
+  s.gsub!(c1, c2)
+  s.gsub!("*", c1)
 end
 
-puts "Yes"
+puts (s==t) ? "Yes" : "No"
