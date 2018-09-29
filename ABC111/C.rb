@@ -8,23 +8,23 @@ if v.uniq.size == 1
   exit
 end
 
-ve_group = ve.group_by{|e| e}
-ve_mode = ve_group.max_by{|_,v| v.size}.first
+ve_group = ve.group_by{|e| e}.sort_by{|_,v| v.size}
+ve_mode = ve_group[-1].first
 
-vo_group = vo.group_by{|e| e}
-vo_mode = vo_group.max_by{|_,v| v.size}.first
+vo_group = vo.group_by{|e| e}.sort_by{|_,v| v.size}
+vo_mode = vo_group[-1].first
 
 if ve_mode == vo_mode
   if ve.uniq.size == 1
-    count = vo.count{|x| x != vo_group.sort_by{|_,v| v.size}[-2].first} + ve.count{|x| x != ve_mode}
+    count = vo.size - vo_group[-2][1].size + ve.size - ve_group[-1][1].size
   elsif vo.uniq.size == 1
-    count = ve.count{|x| x != ve_group.sort_by{|_,v| v.size}[-2].first} + vo.count{|x| x != vo_mode}
+    count = ve.size - ve_group[-2][1].size + vo.size - vo_group[-1][1].size
   else
-    count = [ve.count{|x| x != ve_group.sort_by{|_,v| v.size}[1].first} + vo.count{|x| x != vo_mode},
-             vo.count{|x| x != vo_group.sort_by{|_,v| v.size}[1].first} + ve.count{|x| x != ve_mode}].min
+    count = [vo.size - vo_group[-2][1].size + ve.size - ve_group[-1][1].size,
+             ve.size - ve_group[-2][1].size + vo.size - vo_group[-1][1].size].min
   end
 else
-  count = ve.count{|x| x != ve_mode} + vo.count{|x| x != vo_mode}
+  count = ve.size - ve_group[-1][1].size + vo.size - vo_group[-1][1].size
 end
 
 puts count
