@@ -10,5 +10,9 @@ v = gets.chomp.split(" ").map(&:to_i)
 ve = v.select.with_index {|e,i| i%2==0}
 vo = v.select.with_index {|e,i| i%2==1}
 
-count = solve(ve) + solve(vo)
-puts (v.uniq.size == 1) ? ve.size : count
+if v.uniq.size == 1
+  puts v.size/2
+  exit
+end
+
+puts solve(ve) + solve(vo)
