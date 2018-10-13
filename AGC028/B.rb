@@ -1,6 +1,8 @@
 n = gets.to_i
 arr = gets.chomp.split(" ").map(&:to_i)
 
+# ｲﾝﾃﾞｯｸｽ範囲で差分ﾒﾓとってｵｷﾞｬ
+
 def dfs(arr,i,cost,sum)
   cost += arr[i]
   arr[i] = nil
