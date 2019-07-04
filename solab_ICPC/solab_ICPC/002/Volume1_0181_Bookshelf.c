@@ -1,52 +1,65 @@
-#include <iostream>
-#include <vector>
-using namespace std;
+#include <stdio.h>
+#define MAX 100
 
-int main(){
-	int n, m;
-	while (cin >> m >> n, n || m){
-		vector<int> v(n);
-		for (int i = 0; i < n; i++){
-			cin >> v[i];
-		}
+int n, m;
+int books[MAX];
 
-		// “ñ•ª’Tõ‚Å•‚ğ‹‚ß‚é
-		int low = 1, high = 1500000, mid = -1, prev;
-		while (true){
-			prev = mid;
-			mid = (low + high) / 2;
-			// ‘O‚Æ“¯‚¶Œ‹‰Ê‚Ì‚Æ‚«
-			if (prev == mid) break;
+int check(mid){
+	//	å·»å·
+	int pos = 0;
 
-			// pos := û‚ß‚½‚¢–{‚Ì”Ô†
-			// v[pos] := pos ”Ô–Ú‚Ì–{‚ÌŒú‚³
-			int pos = 0;
-			// ’i” m ‚¾‚¯ƒ‹[ƒv‚µ‚Ä–{’I‚Éû‚Ü‚éŒú‚³‚Ì–{‚ğû‚ß‚Ä‚¢‚­.
-			for (int i = 0; i < m; i++){
-				// width := m ’i–Ú‚Ìc‚è‚Ì–{’I‚Ì•
-				int width = mid;
-				while (true){
-					if (width >= v[pos]){ // –{‚ªû‚Ü‚é‚Æ‚«
-						width -= v[pos];
-						pos++;
-						// ‚·‚×‚Ä‚Ì–{‚ğû‚ß‚½
-						if (pos >= v.size()) break;
-					}
-					else{ // –{‚ªû‚Ü‚ç‚È‚¢‚Æ‚«
-						break;
-					}
-				}
-				// ‚·‚×‚Ä‚Ì–{‚ğû‚ß‚½
-				if (pos >= v.size()) break;
-			}
-			// ‚·‚×‚Ä‚Ì–{‚ğû‚ß‚½
-			if (pos >= v.size()){
-				high = mid + 1;
+	//	æœ¬æ£šã®æ®µæ•°ã ã‘ãƒ«ãƒ¼ãƒ—
+	for (int i = 0; i < n; i++){
+		//		printf("i: %d  book : %d\n", i, books[pos]);
+		int width = mid;
+		for (; pos < m; pos++){
+			//	ç©ºãå¹…ãŒæœ¬ã®å¹…ã‚ˆã‚Šå¤§ãã‘ã‚Œã°æ ¼ç´
+			if (width >= books[pos]){
+				width -= books[pos];
 			}
 			else{
-				low = mid - 1;
+				break;
 			}
 		}
-		cout << mid + 1 << endl;
+		if (pos >= m){ break; }
+	}
+	return pos;
+}
+
+int bs(left, right){
+	int mid = (left + right) / 2;
+//	printf("left mid right : %d %d %d\n", left, mid, right);
+	if (left >= right){ return mid; }
+
+	//	æœ¬æ£šã«åã¾ã‚‹ã‹ï¼Ÿ
+	int pos = check(mid);
+
+	//	æœ¬æ£šã«å…¨éƒ¨åã¾ã£ãŸ
+	if (pos >= m){
+		return bs(left, mid);
+	}else{
+		return bs(mid + 1, right);
+	}
+}
+
+int main(){
+	int i;
+//	int books[100];
+	int left, right, mid;
+	int sum_width;
+	
+	while (scanf("%d %d",&n,&m), n || m){
+		sum_width = 0;
+		for (i = 0; i < m; i++){
+			scanf("%d", &books[i]);
+			sum_width += books[i];
+		}
+
+		//	äºŒåˆ†æ¢ç´¢
+		//	ãŸã ã—ã€æœ¬æ£šã®å¹…ã¯ 1500000 ã‚’è¶…ãˆãªã„ã‚‚ã®ã¨ã—ã¾ã™ã€‚
+		//	-> æœ€æ‚ªå€¤ = ã™ã¹ã¦1æ®µã«åã‚ãŸå ´åˆ = æœ¬ã®å¹…ã®åˆè¨ˆ
+		left = 1; right = sum_width;
+		
+		printf("%d\n",bs(left, right));
 	}
 }
