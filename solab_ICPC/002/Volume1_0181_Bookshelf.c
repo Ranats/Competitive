@@ -38,8 +38,8 @@ int bs(left, right){
 
 	//	本棚に全部収まった => 最後まで入れた -> pos == m
 	if (pos >= m){
-		return bs(left, mid);	//	左端から中央まで = 本棚の幅を狭める
-	}else{	//	入らない
+		return bs(left, mid);		//	左端から中央まで = 本棚の幅を狭める
+	}else{	// 入らない
 		return bs(mid + 1, right);	//	中央から右端まで = 本棚の幅を広める
 	}
 }
