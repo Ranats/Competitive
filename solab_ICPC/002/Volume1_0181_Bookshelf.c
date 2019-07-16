@@ -36,14 +36,11 @@ int bs(left, right){
 	//	m   : 巻数 = 最終巻のインデックス
 	int pos = check(mid);
 
-	//	本棚に全部収まった
-	//	=> 最後まで入れた -> pos == m
+	//	本棚に全部収まった => 最後まで入れた -> pos == m
 	if (pos >= m){
-		//	左端から中央まで = 本棚の幅を狭める
-		return bs(left, mid);
+		return bs(left, mid);	//	左端から中央まで = 本棚の幅を狭める
 	}else{	//	入らない
-		//	中央から右端まで = 本棚の幅を広める
-		return bs(mid + 1, right);
+		return bs(mid + 1, right);	//	中央から右端まで = 本棚の幅を広める
 	}
 }
 
