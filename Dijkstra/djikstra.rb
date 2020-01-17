@@ -37,6 +37,12 @@ class Node
     end
   end
 
+  def pop
+    ret = @heap[0]
+    delete_maximum
+    ret
+  end
+
   def push_heap( x , i)
     size = @heap.size
     @heap[size] = {cost:x, id:i}   # データをヒープの最後に追加
@@ -47,6 +53,7 @@ class Node
     end
   end
 
+  # ヒープの先頭を削除
   def delete_maximum
     size = @heap.size - 1
     @heap[0] = @heap.pop
@@ -122,15 +129,29 @@ def dijkstra( s, t)
   visited = []
   visited << nodes[s]
 
-  distance = 0
+  dist_sum = 0                      # start から 現時点 までの累計距離
+  distance = Array.new(cities){0}   # start から 各頂点 までの距離
 
-  min = nodes[s].heap.first
+  # 最初のノードから他の到達可能なノードへのヒープを初期化 （初期ノードのヒープから到達可能なノードへの距離を格納）
+  nodes[s].heap.each do |hash|
+    distance[hash[:id]] += hash[:cost]
+  end
 
+  # 初期ノードの到達可能なヒープから最小のノード（根）を抽出
+  min = nodes[s].pop
   p min
 
+
+  # メインループ
+  # 未探索の頂点が無くなるまで => Q-V > 0
+
+  # if visited.include?(nodes[min[:id]])
   visited << nodes[min[:id]]
 
+
   nodes[0].delete_maximum
+
+
 
 
   exit
