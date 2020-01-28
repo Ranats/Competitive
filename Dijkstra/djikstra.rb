@@ -1,4 +1,6 @@
-#require 'thread'
+###
+# Written by Satoshi Coda. 2020.01
+###
 
 class Array
   def swap!(a,b)
@@ -9,9 +11,18 @@ class Array
   end
 end
 
+class Integer
+  N_BYTES = [42].pack('i').size
+  N_BITS = N_BYTES * 16
+  MAX = 2 ** (N_BITS - 2) - 1
+  MIN = -MAX - 1
+end
+
+MAX_DISTANCE = Integer::MAX
+
 # 辿ってきたルートを集積
 def trace( node , start_node, route = [])
-  route.unshift( node )
+  route.unshift( node.id )
   return route if start_node == node
   trace( node.from, start_node, route)
 end
@@ -22,14 +33,12 @@ class Node
   def initialize( id )
     @id = id
     @done = false
-    # スタート位置からこのノードまでの総コスト
-    @cost = -1
+    @cost = MAX_DISTANCE    # スタート位置からこのノードまでの総コスト
     @from = nil
     @heap = []
   end
 
   def set_cost( connect )
-
     connect.each_with_index do |cost, i|
       unless cost == 0
         push_heap( cost, i )
@@ -56,6 +65,10 @@ class Node
   # ヒープの先頭を削除
   def delete_maximum
     size = @heap.size - 1
+    if size <= 0
+      @heap.pop
+      return
+    end
     @heap[0] = @heap.pop
     k = 1
     while 2*k <= size # 子を持つかどうかを判定
@@ -92,102 +105,104 @@ end
 
 # 開始位置が変わるとノードの持つ情報はすべて初期化される
 # 二分ヒープ → そのノードからのコスト？
-def dijkstra( s, t)
+def dijkstra( file=nil, start=0, goal=0 )
   graph = []
+  num_of_cities = file.gets.to_i
 
-  print "Input File name : "
-#  input = gets.chomp
-  print "Out put File name :"
-#  output = gets.chomp
-
-  input = "data.dat"
-  begin
-    file = open(input)
-#file = open(ARGV[0])
-  rescue
-    puts "\n Cannot open File : #{file}"
-    exit
-  end
-
-  cities = file.gets.to_i
-
+  # ファイルからグラフを構成
   while (line = file.gets)
     graph << line.chomp.split(" ").map(&:to_i)
   end
 
-  nodes = Array.new(cities){|i| Node.new(i) }
+  # ノードを初期化
+  nodes = Array.new(num_of_cities){|i| Node.new(i) }
 
+  # 隣接するノードを二分ヒープに追加
   graph.each_with_index do |path, i|
-    p path
     nodes[i].set_cost( path )
   end
 
-  nodes.each do |node|
-    p node
-  end
-
-  visited = []
-  visited << nodes[s]
-
-  dist_sum = 0                      # start から 現時点 までの累計距離
-  distance = Array.new(cities){0}   # start から 各頂点 までの距離
-
-  # 最初のノードから他の到達可能なノードへのヒープを初期化 （初期ノードのヒープから到達可能なノードへの距離を格納）
-  nodes[s].heap.each do |hash|
-    distance[hash[:id]] += hash[:cost]
-  end
-
-  # 初期ノードの到達可能なヒープから最小のノード（根）を抽出
-  min = nodes[s].pop
-  p min
-
+  # 探索開始
+  visited = []        # 探索済みリスト
+  now = nodes[start]  # 現在位置::Node
+  now.cost = 0        # 初期地点への到達コストを 0 に設定
 
   # メインループ
-  # 未探索の頂点が無くなるまで => Q-V > 0
+  until nodes.all? {|node| node.heap.empty? }
+#    puts "now: node #{now.id}"
+#    puts "visited : #{visited.each {|node| node.id}}"
+#    puts "distance : #{distance}"
 
-  # if visited.include?(nodes[min[:id]])
-  visited << nodes[min[:id]]
+    # 隣接ノードへの距離を更新
+#    puts "---update adjacent distance"
+    adjacent = now.heap                  # 隣接するノード ＝ ヒープを取得
+    adjacent.each do |node_h|            # 隣接距離を更新
+      node = nodes[node_h[:id]]          # 隣接ノード
+      dist_temp = now.cost + node_h[:cost]  # 現在位置までのコスト＋移動先へのコスト が
+      node.cost = [node.cost,dist_temp].min # 移動先のノードの既に設定済みのコストよりも小さければ 更新
+    end
 
+    # 最小ノードへ遷移
+#    puts "---transition next node"
+    # 探索済みリストに現在ノードを追加
+    visited << now
 
-  nodes[0].delete_maximum
+    # 到達可能なノードをヒープから順に取り出し，未探索であれば続行．探索済みであれば再度ヒープから取り出す
+    until now.heap.empty?
+      min = nodes[now.pop[:id]]           # @heap => ::Hash
+      break unless visited.include?(min)
+#      puts " visited!"
+    end
 
+    # ヒープが空 ＝ どの隣接してるノードも探索済みだった場合，:from を辿り，手戻る
+    if now.heap.empty?
+#      puts " empty!"
+      now = now.from
+      next
+    end
 
-
-
-  exit
-  # スタート位置s, ゴール位置t,
-  visited = [] #=> routeになるのでは？
-  cost = 0
-  node = heap[s].min
-  unless visited.include?(node)
-    visited << node
+    # :from を設定し，現在ノードを移動
+    min.from = now
+    now = min
   end
-  # 探索済みでないならば，探索済みに追加
-  # ノードの重みを
+
+  # 探索終了
+  ret = []
+  nodes.each do |node|
+#    puts "@id=#{node.id}, @cost=#{node.cost}, @from=#{trace(node,nodes[start])}, @heap=#{node.heap}"
+    ret << "To vertex #{node.id} : weight= #{node.cost} : path= #{trace(node,nodes[start]).join("->")}"
+  end
+
+  ret
 end
 
-#  二分ヒープに格納するように実装
-#  始点ノードを指定．　始点ノードのヒープ中の最小のノードに遷移？
-# S=∅ 空集合
-# Sに含まれない頂点のうち，始点からの距離が最小であるノードv_kを選択 （＝始点は距離0なので，最初は始点ノードが選択される）
 
-# v_kに隣接するノードかつ，Sに含まれないノードについて，始点からの距離 d_i を再計算する
-#   → d_i は各頂点が隣接する各頂点までの距離．→ 初期条件として与えられている．
-#   → 与えられているものよりも v_k を経由した距離の方が短い = 始点から v_k への d_i + v_k から隣接する注目する頂点への距離
-#   → d_iを更新．=> from を v_k に付け替える？
+# main
+print "Input File name : "
+input = gets.chomp #input = "data.dat"
 
-# 未確定リスト Q に二分ヒープを採用？
+print "Out put File name : "
+output = gets.chomp #output = "out"
 
+begin
+  file = open(input) #file = open(ARGV[0])
+rescue
+  puts "\n Cannot open File : #{file}"
+  exit
+end
 
-dijkstra(0,5)
+print "Start point : "
+start = gets.to_i
 
+ret = dijkstra(file, start)
+#p ret
 
-# output
-# weight root
-# 3 1->2->3->...
+# 出力
+File.open(output,"w") do |f|
+  f.puts "start point : #{start}"
+  ret.each do |line|
+    f.puts line
+  end
+end
 
-# in case where start point is "3"
-# To vertex 0 : weight=4 : root=1->2->3->4->...
-# To vertex 1 :
-# ...
-# To vertex 7 : weight=5 : root=
+puts "process "
